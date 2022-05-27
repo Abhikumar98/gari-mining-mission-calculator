@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { getTokensForUsers, Tier, User } from '@/server';
+import { getTokensForUsers, Tier, users } from '@/server';
 
 const index = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -10,7 +10,7 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
       goldMultiplier,
       platinumMultiplier,
       percentageStreak,
-    } = body;
+    } = JSON.parse(body);
 
     if (
       !silverMultiplier ||
@@ -22,28 +22,6 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     const totalTokensPerDay = 50000;
-    const users: User[] = [
-      {
-        streakOrContribution: 2,
-        tier: Tier.Silver,
-      },
-      {
-        streakOrContribution: 3,
-        tier: Tier.Silver,
-      },
-      {
-        streakOrContribution: 6,
-        tier: Tier.Gold,
-      },
-      {
-        streakOrContribution: 1,
-        tier: Tier.Gold,
-      },
-      {
-        streakOrContribution: 4,
-        tier: Tier.Platinum,
-      },
-    ];
 
     const tierMultiplier: Record<Tier, number> = {
       [Tier.Silver]: silverMultiplier,
@@ -74,7 +52,8 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
       contributionTokensPerUser,
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    res.status(500).json({ error: (error as any).message });
   }
 };
 

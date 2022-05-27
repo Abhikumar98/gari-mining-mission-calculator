@@ -9,6 +9,29 @@ export interface User {
   tier: Tier;
 }
 
+export const users: User[] = [
+  {
+    streakOrContribution: 2,
+    tier: Tier.Silver,
+  },
+  {
+    streakOrContribution: 3,
+    tier: Tier.Silver,
+  },
+  {
+    streakOrContribution: 6,
+    tier: Tier.Gold,
+  },
+  {
+    streakOrContribution: 1,
+    tier: Tier.Gold,
+  },
+  {
+    streakOrContribution: 4,
+    tier: Tier.Platinum,
+  },
+];
+
 export const getTokensForUsers = ({
   users,
   allotableTokens,
@@ -69,14 +92,14 @@ export const getTokensForUsers = ({
           (curr.streakOrContribution / totalSilverTokens) *
           allotableSilverTokens;
 
-        acc.push(tokensForUser);
+        acc.push(Number(tokensForUser.toFixed(2)));
         break;
       }
       case Tier.Gold: {
         const tokensForUser =
           (curr.streakOrContribution / totalGoldTokens) * allotableGoldTokens;
 
-        acc.push(tokensForUser);
+        acc.push(Number(tokensForUser.toFixed(2)));
         break;
       }
       case Tier.Platinum: {
@@ -84,7 +107,7 @@ export const getTokensForUsers = ({
           (curr.streakOrContribution / totalPlatinumTokens) *
           allotablePlatinumTokens;
 
-        acc.push(tokensForUser);
+        acc.push(Number(tokensForUser.toFixed(2)));
         break;
       }
 

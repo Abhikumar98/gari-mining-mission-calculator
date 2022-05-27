@@ -2,6 +2,8 @@ import * as React from 'react';
 
 import Layout from '@/components/layout/Layout';
 
+import { users } from '@/server';
+
 /**
  * SVGR Support
  * Caveat: No React Props Type.
@@ -20,6 +22,8 @@ export default function HomePage() {
   const [platinumMultiplier, setPlatinumMultiplier] = React.useState(3);
   const [percentageStreak, setPercentageStreak] = React.useState(0);
 
+  const [result, setResult] = React.useState(null);
+
   const getTokensAllocation = async () => {
     try {
       const body = {
@@ -36,7 +40,9 @@ export default function HomePage() {
 
       const data = await response.json();
       // eslint-disable-next-line no-console
-      console.log({ data });
+      if (!data.error) {
+        setResult(data);
+      }
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err);
@@ -46,8 +52,8 @@ export default function HomePage() {
   return (
     <Layout>
       <main>
-        <section className='bg-white'>
-          <div className='layout flex min-h-screen max-w-xl flex-col justify-center text-center'>
+        <section className='flex bg-white p-8'>
+          <div className=''>
             <div className='mb-4 flex flex-col items-start justify-start'>
               <label
                 htmlFor='silver'
@@ -137,6 +143,12 @@ export default function HomePage() {
               </button>
             </div>
           </div>
+          <pre className='ml-16 text-xs'>
+            Data: {JSON.stringify(users, null, 4)}
+          </pre>
+          <pre className='ml-16 text-xs'>
+            Result: {JSON.stringify(result, null, 4)}
+          </pre>
         </section>
       </main>
     </Layout>

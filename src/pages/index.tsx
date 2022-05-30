@@ -3,6 +3,8 @@ import toast, { Toaster } from 'react-hot-toast';
 
 import Layout from '@/components/layout/Layout';
 
+import { User } from '@/server';
+
 /**
  * SVGR Support
  * Caveat: No React Props Type.
@@ -14,15 +16,19 @@ import Layout from '@/components/layout/Layout';
 // !STARTERCONF -> Select !STARTERCONF and CMD + SHIFT + F
 // Before you begin editing, follow all comments with `STARTERCONF`,
 // to customize the default configuration.
-
+interface Result {
+  streak: number[];
+  contribution: number[];
+}
 export default function HomePage() {
   const [silverMultiplier, setSilverMultiplier] = React.useState(1);
   const [goldMultiplier, setGoldMultiplier] = React.useState(2);
   const [platinumMultiplier, setPlatinumMultiplier] = React.useState(3);
   const [percentageStreak, setPercentageStreak] = React.useState(0);
 
-  const [result, setResult] = React.useState(null);
-  const [randomData, setRandomData] = React.useState();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [result, setResult] = React.useState<Result | null>(null);
+  const [randomData, setRandomData] = React.useState<User[]>([]);
 
   // number of users, gold, silver, and platinum tier numbers state
   const [users, setUsers] = React.useState(0);

@@ -120,6 +120,11 @@ export default function HomePage() {
                   </div>
                 );
               })}
+              {!randomData && (
+                <div className='mt-12 flex items-center justify-center'>
+                  No users generated
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -5,29 +5,29 @@ export enum Tier {
 }
 
 export interface User {
-  streakOrContribution: number;
+  score: number;
   tier: Tier;
 }
 
 export const users: User[] = [
   {
-    streakOrContribution: 2,
+    score: 2,
     tier: Tier.Silver,
   },
   {
-    streakOrContribution: 3,
+    score: 3,
     tier: Tier.Silver,
   },
   {
-    streakOrContribution: 6,
+    score: 6,
     tier: Tier.Gold,
   },
   {
-    streakOrContribution: 1,
+    score: 1,
     tier: Tier.Gold,
   },
   {
-    streakOrContribution: 4,
+    score: 4,
     tier: Tier.Platinum,
   },
 ];
@@ -44,13 +44,13 @@ export const getTokensForUsers = ({
   const tierTokens: Record<Tier, number> = users.reduce(
     (acc, curr) => {
       if (curr.tier === Tier.Silver) {
-        acc[Tier.Silver] += curr.streakOrContribution;
+        acc[Tier.Silver] += curr.score;
       }
       if (curr.tier === Tier.Gold) {
-        acc[Tier.Gold] += curr.streakOrContribution;
+        acc[Tier.Gold] += curr.score;
       }
       if (curr.tier === Tier.Platinum) {
-        acc[Tier.Platinum] += curr.streakOrContribution;
+        acc[Tier.Platinum] += curr.score;
       }
       return acc;
     },
@@ -89,23 +89,21 @@ export const getTokensForUsers = ({
     switch (curr.tier) {
       case Tier.Silver: {
         const tokensForUser =
-          (curr.streakOrContribution / totalSilverTokens) *
-          allotableSilverTokens;
+          (curr.score / totalSilverTokens) * allotableSilverTokens;
 
         acc.push(Number(tokensForUser.toFixed(2)));
         break;
       }
       case Tier.Gold: {
         const tokensForUser =
-          (curr.streakOrContribution / totalGoldTokens) * allotableGoldTokens;
+          (curr.score / totalGoldTokens) * allotableGoldTokens;
 
         acc.push(Number(tokensForUser.toFixed(2)));
         break;
       }
       case Tier.Platinum: {
         const tokensForUser =
-          (curr.streakOrContribution / totalPlatinumTokens) *
-          allotablePlatinumTokens;
+          (curr.score / totalPlatinumTokens) * allotablePlatinumTokens;
 
         acc.push(Number(tokensForUser.toFixed(2)));
         break;

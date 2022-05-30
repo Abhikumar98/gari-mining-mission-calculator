@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { getTokensForUsers, Tier, users } from '@/server';
+import { CurrUser, getTokensForUsers, Tier } from '@/server';
 
 const index = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
@@ -10,6 +10,7 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
       goldMultiplier,
       platinumMultiplier,
       percentageStreak,
+      users,
     } = JSON.parse(body);
 
     if (
@@ -35,21 +36,34 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
 
     const contributionBucket = totalTokensPerDay - streakBucket; // 90% of total tokens
 
-    const streakTokensPerUser = getTokensForUsers({
-      users,
+    const userStreaks: CurrUser[] = users.map(
+      ({ streak, tier }: { streak: number; tier: Tier }) => ({
+        score: streak,
+        tier,
+      })
+    );
+    const userContributions: CurrUser[] = users.map(
+      ({ contribution, tier }: { contribution: number; tier: Tier }) => ({
+        score: contribution,
+        tier,
+      })
+    );
+
+    const streak = getTokensForUsers({
+      users: userStreaks,
       allotableTokens: streakBucket,
       tierMultiplier,
     });
 
-    const contributionTokensPerUser = getTokensForUsers({
-      users,
+    const contribution = getTokensForUsers({
+      users: userContributions,
       allotableTokens: contributionBucket,
       tierMultiplier,
     });
 
     res.status(200).json({
-      streakTokensPerUser,
-      contributionTokensPerUser,
+      streak,
+      contribution,
     });
   } catch (error) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

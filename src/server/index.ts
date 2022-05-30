@@ -5,39 +5,22 @@ export enum Tier {
 }
 
 export interface User {
-  score: number;
+  streak: number;
+  contribution: number;
   tier: Tier;
 }
 
-export const users: User[] = [
-  {
-    score: 2,
-    tier: Tier.Silver,
-  },
-  {
-    score: 3,
-    tier: Tier.Silver,
-  },
-  {
-    score: 6,
-    tier: Tier.Gold,
-  },
-  {
-    score: 1,
-    tier: Tier.Gold,
-  },
-  {
-    score: 4,
-    tier: Tier.Platinum,
-  },
-];
+export interface CurrUser {
+  score: number;
+  tier: Tier;
+}
 
 export const getTokensForUsers = ({
   users,
   allotableTokens,
   tierMultiplier,
 }: {
-  users: User[];
+  users: CurrUser[];
   allotableTokens: number;
   tierMultiplier: Record<Tier, number>;
 }) => {

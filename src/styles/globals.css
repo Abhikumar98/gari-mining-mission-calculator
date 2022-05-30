@@ -116,3 +116,8 @@
     background-size: 0 2px, 100% 2px;
   }
 }
+
+.max-height-box {
+  height: 50vh;
+  overflow: auto;
+}

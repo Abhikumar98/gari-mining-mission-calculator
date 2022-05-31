@@ -1,8 +1,6 @@
 import * as React from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
-import Layout from '@/components/layout/Layout';
-
 import { User } from '@/server';
 
 /**
@@ -95,33 +93,38 @@ export default function HomePage() {
   };
 
   return (
-    <Layout>
-      <main className='flex space-x-20 bg-white p-8'>
-        <div className='flex space-x-4'>
-          <div className='rounded-md border p-4'>
-            <div className='mb-8'>Streak Simulation</div>
-            <div className='flex space-y-1 border-b font-extrabold'>
-              <div className='w-36'>Users</div>
-              <div className='w-48'>Streak Score</div>
-              <div className='w-64'>Contribution Score</div>
-              <div className='w-48'>Streak Tokens</div>
-              <div className='w-64'>Contribution Tokens</div>
-              <div className='w-48'>Total Tokens</div>
+    <div className='h-screen w-screen'>
+      <div className='flex h-full w-full space-x-20 bg-white p-8'>
+        <div className='flex h-auto max-w-6xl space-x-4'>
+          <div className='h-auto rounded-md border p-4'>
+            <div className='mb-8'>Generated User list</div>
+            <div className='grid grid-cols-6 gap-4 space-y-1 border-b font-extrabold'>
+              <div className=''>Users</div>
+              <div className=''>Streak Score</div>
+              <div className=''>Contribution Score</div>
+              <div className=''>Streak Tokens</div>
+              <div className=''>Contribution Tokens</div>
+              <div className=''>Total Tokens</div>
             </div>
-            <div className='max-height-box'>
+            <div className='max-height-box '>
               {randomData?.map((user, index) => {
                 return (
-                  <div key={index} className='flex space-y-1 border-b'>
-                    <div className='w-36'>#{index + 1}</div>
-                    <div className='w-48'>{user.streak}</div>
-                    <div className='w-64'>{user.contribution}</div>
-                    <div className='w-48'>{result?.streak[index]}</div>
-                    <div className='w-64'>{result?.contribution[index]}</div>
-                    <div className='w-48'>
+                  <div
+                    key={index}
+                    className='grid grid-cols-6 gap-4 space-y-1 border-b'
+                  >
+                    <div className=''>#{index + 1}</div>
+                    <div className=''>{user.streak}</div>
+                    <div className=''>{user.contribution}</div>
+                    <div className=''>{result?.streak[index] ?? '--'}</div>
+                    <div className=''>
+                      {result?.contribution[index] ?? '--'}
+                    </div>
+                    <div className=''>
                       {Number(
                         (result?.contribution[index] ?? 0) +
                           (result?.streak[index] ?? 0)
-                      ).toFixed(2)}
+                      ).toFixed(2) ?? '--'}
                     </div>
                   </div>
                 );
@@ -337,8 +340,8 @@ export default function HomePage() {
             </section>
           </div>
         </div>
-      </main>
+      </div>
       <Toaster />
-    </Layout>
+    </div>
   );
 }

@@ -118,6 +118,6 @@
 }
 
 .max-height-box {
-  height: 50vh;
+  height: calc(100vh - 13rem);
   overflow: auto;
 }

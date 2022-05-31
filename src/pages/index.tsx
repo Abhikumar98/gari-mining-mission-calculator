@@ -98,8 +98,9 @@ export default function HomePage() {
         <div className='flex h-auto max-w-6xl space-x-4'>
           <div className='h-auto rounded-md border p-4'>
             <div className='mb-8'>Generated User list</div>
-            <div className='grid grid-cols-6 gap-4 space-y-1 border-b font-extrabold'>
+            <div className='grid grid-cols-7 gap-4 space-y-1 border-b font-extrabold'>
               <div className=''>Users</div>
+              <div className=''>Tier</div>
               <div className=''>Streak Score</div>
               <div className=''>Contribution Score</div>
               <div className=''>Streak Tokens</div>
@@ -114,6 +115,7 @@ export default function HomePage() {
                     className='grid grid-cols-6 gap-4 space-y-1 border-b'
                   >
                     <div className=''>#{index + 1}</div>
+                    <div className=''>{user.tier}</div>
                     <div className=''>{user.streak}</div>
                     <div className=''>{user.contribution}</div>
                     <div className=''>{result?.streak[index] ?? '--'}</div>

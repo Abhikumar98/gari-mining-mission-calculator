@@ -1,4 +1,5 @@
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
+import { creatCsvFile, downloadFile } from 'download-csv';
 import * as React from 'react';
 import { Pie } from 'react-chartjs-2';
 import toast, { Toaster } from 'react-hot-toast';
@@ -132,6 +133,40 @@ export default function HomePage() {
     }
   };
   ChartJS.register(ArcElement, Tooltip, Legend);
+
+  const handleCSVDownload = () => {
+    if (!randomData) {
+      toast.error('No data to download');
+      return;
+    }
+    const datas = randomData?.map((user, index) => {
+      return {
+        users: index + 1,
+        tier: user.tier,
+        streak_score: user.streak,
+        contribution_score: user.contribution,
+        streak_tokens: result?.streak[index] ?? 0,
+        contribution_tokens: result?.contribution[index] ?? 0,
+        total_tokens:
+          Number(
+            (result?.contribution[index] ?? 0) + (result?.streak[index] ?? 0)
+          ).toFixed(2) ?? 0,
+      };
+    });
+
+    const columns = {
+      users: 'Users',
+      tier: 'Tier',
+      streak_score: 'Streak Score',
+      contribution_score: 'Contribution Score',
+      streak_tokens: 'Streak Tokens',
+      contribution_tokens: 'Contribution Tokens',
+      total_tokens: 'Total Tokens',
+    };
+
+    const csvFile = creatCsvFile(datas, columns); // return csvfile
+    downloadFile(csvFile, 'Gari token'); // browser download file
+  };
 
   const data = {
     labels: ['Free', 'Basic', 'Bronze', 'Silver', 'Gold', 'Diamond'],
@@ -596,6 +631,15 @@ export default function HomePage() {
           <div className='font-semibold '>Token distribution</div>
           <div className='h-96 w-96'>
             <Pie data={data} />
+          </div>
+          <div className='m-4 flex items-start'>
+            <button
+              type='button'
+              className=' w-auto items-center rounded-md border border-transparent bg-indigo-600 px-8 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+              onClick={handleCSVDownload}
+            >
+              Download CSV
+            </button>
           </div>
         </div>
       </div>

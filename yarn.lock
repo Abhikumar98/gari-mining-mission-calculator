@@ -3510,6 +3510,11 @@ dotgitignore@^2.1.0:
     find-up "^3.0.0"
     minimatch "^3.0.4"
 
+download-csv@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/download-csv/-/download-csv-1.1.1.tgz#c0b076f48344f1be47af4005cf32d53283eb88eb"
+  integrity sha512-sth80pckLRk4/9HLU5RQbRimM+8G5XAR/G8C2oRcEvfjFU4szyd0rUPADczFu7lupK3glwAiPXA+kpRXrAkfNA==
+
 eastasianwidth@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/eastasianwidth/-/eastasianwidth-0.2.0.tgz#696ce2ec0aa0e6ea93a397ffcf24aa7840c827cb"

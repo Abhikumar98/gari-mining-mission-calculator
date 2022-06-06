@@ -6,17 +6,21 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
   try {
     const { body } = req;
     const {
+      freeMultiplier,
+      basicMultiplier,
+      bronzeMultiplier,
       silverMultiplier,
       goldMultiplier,
-      platinumMultiplier,
+      diamondMultiplier,
       percentageStreak,
       users,
     } = JSON.parse(body);
 
     if (
+      !basicMultiplier ||
       !silverMultiplier ||
       !goldMultiplier ||
-      !platinumMultiplier ||
+      !diamondMultiplier ||
       !percentageStreak
     ) {
       throw new Error('Missing parameters');
@@ -25,9 +29,12 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
     const totalTokensPerDay = 50000;
 
     const tierMultiplier: Record<Tier, number> = {
+      [Tier.Free]: freeMultiplier,
+      [Tier.Basic]: basicMultiplier,
+      [Tier.Bronze]: bronzeMultiplier,
       [Tier.Silver]: silverMultiplier,
       [Tier.Gold]: goldMultiplier,
-      [Tier.Platinum]: platinumMultiplier,
+      [Tier.Diamond]: diamondMultiplier,
     };
 
     const streakBucketAllocationPercentage = percentageStreak / 100; // 10%

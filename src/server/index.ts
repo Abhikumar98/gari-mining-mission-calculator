@@ -1,7 +1,10 @@
 export enum Tier {
+  Free = 'free',
+  Basic = 'basic',
+  Bronze = 'bronze',
   Silver = 'silver',
   Gold = 'gold',
-  Platinum = 'platinum',
+  Diamond = 'diamond',
 }
 
 export interface User {
@@ -26,39 +29,46 @@ export const getTokensForUsers = ({
 }) => {
   const tierTokens: Record<Tier, number> = users.reduce(
     (acc, curr) => {
-      if (curr.tier === Tier.Silver) {
-        acc[Tier.Silver] += curr.score;
-      }
-      if (curr.tier === Tier.Gold) {
-        acc[Tier.Gold] += curr.score;
-      }
-      if (curr.tier === Tier.Platinum) {
-        acc[Tier.Platinum] += curr.score;
-      }
+      acc[curr.tier] += curr.score;
       return acc;
     },
     {
+      [Tier.Free]: 0,
+      [Tier.Basic]: 0,
+      [Tier.Bronze]: 0,
       [Tier.Silver]: 0,
       [Tier.Gold]: 0,
-      [Tier.Platinum]: 0,
+      [Tier.Diamond]: 0,
     }
   );
 
-  const { silver, gold, platinum } = tierTokens;
+  const { silver, gold, diamond, basic, free, bronze } = tierTokens;
 
   const totalTierTokens = {
     silver: silver * tierMultiplier.silver,
     gold: gold * tierMultiplier.gold,
-    platinum: platinum * tierMultiplier.platinum,
+    diamond: diamond * tierMultiplier.diamond,
+    basic: basic * tierMultiplier.basic,
+    free: free * tierMultiplier.free,
+    bronze: bronze * tierMultiplier.bronze,
   };
 
   const {
     silver: totalSilverTokens,
     gold: totalGoldTokens,
-    platinum: totalPlatinumTokens,
+    diamond: totalPlatinumTokens,
+    basic: totalBasicTokens,
+    free: totalFreeTokens,
+    bronze: totalBronzeTokens,
   } = totalTierTokens;
 
-  const totalTokens = totalSilverTokens + totalGoldTokens + totalPlatinumTokens;
+  const totalTokens =
+    totalSilverTokens +
+    totalGoldTokens +
+    totalPlatinumTokens +
+    totalBasicTokens +
+    totalFreeTokens +
+    totalBronzeTokens;
 
   const allotableSilverTokens =
     (totalSilverTokens / totalTokens) * allotableTokens;
@@ -67,6 +77,14 @@ export const getTokensForUsers = ({
 
   const allotablePlatinumTokens =
     (totalPlatinumTokens / totalTokens) * allotableTokens;
+
+  const allotableBasicTokens =
+    (totalBasicTokens / totalTokens) * allotableTokens;
+
+  const allotableFreeTokens = (totalFreeTokens / totalTokens) * allotableTokens;
+
+  const allotableBronzeTokens =
+    (totalBronzeTokens / totalTokens) * allotableTokens;
 
   const tokensAllotedPerUser = users.reduce((acc, curr) => {
     switch (curr.tier) {
@@ -84,9 +102,31 @@ export const getTokensForUsers = ({
         acc.push(Number(tokensForUser.toFixed(2)));
         break;
       }
-      case Tier.Platinum: {
+      case Tier.Diamond: {
         const tokensForUser =
           (curr.score / totalPlatinumTokens) * allotablePlatinumTokens;
+
+        acc.push(Number(tokensForUser.toFixed(2)));
+        break;
+      }
+      case Tier.Basic: {
+        const tokensForUser =
+          (curr.score / totalBasicTokens) * allotableBasicTokens;
+
+        acc.push(Number(tokensForUser.toFixed(2)));
+        break;
+      }
+      case Tier.Free: {
+        const tokensForUser =
+          (curr.score / totalFreeTokens) * allotableFreeTokens;
+
+        acc.push(Number(tokensForUser.toFixed(2)));
+        break;
+      }
+
+      case Tier.Bronze: {
+        const tokensForUser =
+          (curr.score / totalBronzeTokens) * allotableBronzeTokens;
 
         acc.push(Number(tokensForUser.toFixed(2)));
         break;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
-import { User } from '@/server';
+import { Tier, User } from '@/server';
 
 /**
  * SVGR Support
@@ -19,9 +19,20 @@ interface Result {
   contribution: number[];
 }
 export default function HomePage() {
-  const [silverMultiplier, setSilverMultiplier] = React.useState(1);
-  const [goldMultiplier, setGoldMultiplier] = React.useState(2);
-  const [platinumMultiplier, setPlatinumMultiplier] = React.useState(3);
+  const [multiplier, setMultiplier] = React.useState<Record<Tier, number>>({
+    free: 1,
+    basic: 2,
+    bronze: 3,
+    silver: 4,
+    gold: 5,
+    diamond: 10,
+  });
+
+  const handleMultiplierChange = (value: number) => (key: Tier) => {
+    if (typeof key !== 'undefined' && value) {
+      setMultiplier((prev) => ({ ...prev, [key]: value }));
+    }
+  };
   const [percentageStreak, setPercentageStreak] = React.useState(0);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,16 +41,26 @@ export default function HomePage() {
 
   // number of users, gold, silver, and platinum tier numbers state
   const [users, setUsers] = React.useState(0);
-  const [gold, setGold] = React.useState(0);
-  const [silver, setSilver] = React.useState(0);
-  const [platinum, setPlatinum] = React.useState(0);
+
+  const [userProportion, setUserProportion] = React.useState<
+    Record<Tier, number>
+  >({ free: 50, basic: 20, bronze: 10, silver: 7.5, gold: 7.5, diamond: 5 });
+
+  const handleUserProportionChange = (value: number) => (key: Tier) => {
+    if (typeof key !== 'undefined' && value) {
+      setUserProportion((prev) => ({ ...prev, [key]: value }));
+    }
+  };
 
   const getTokensAllocation = async () => {
     try {
       const body = {
-        silverMultiplier,
-        goldMultiplier,
-        platinumMultiplier,
+        freeMultiplier: multiplier.free,
+        basicMultiplier: multiplier.basic,
+        bronzeMultiplier: multiplier.bronze,
+        silverMultiplier: multiplier.silver,
+        goldMultiplier: multiplier.gold,
+        diamondMultiplier: multiplier.diamond,
         percentageStreak,
         users: randomData,
       };
@@ -64,24 +85,32 @@ export default function HomePage() {
 
   const generateData = async () => {
     try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        body: JSON.stringify({
-          goldTier: gold,
-          silverTier: silver,
-          platinumTier: platinum,
-          numberOfUsers: users,
-        }),
-      });
-
-      if (Math.ceil(gold + silver + platinum) != 100) {
+      const sumOfUserProportions = Object.values(userProportion).reduce(
+        (acc, curr) => acc + curr,
+        0
+      );
+      if (Math.ceil(sumOfUserProportions) != 100) {
         toast.error('Total tier percentage must be 100');
         return;
       }
+
       if (users < 1) {
         toast.error('Invalid users');
         return;
       }
+
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          goldTier: userProportion.gold,
+          silverTier: userProportion.silver,
+          bronzeTier: userProportion.bronze,
+          freeTier: userProportion.free,
+          diamondTier: userProportion.diamond,
+          basicTier: userProportion.basic,
+          numberOfUsers: users,
+        }),
+      });
       const data = await response.json();
       setRandomData(data);
     } catch (err) {
@@ -98,31 +127,42 @@ export default function HomePage() {
         <div className='flex h-auto max-w-6xl space-x-4'>
           <div className='h-auto rounded-md border p-4'>
             <div className='mb-8'>Generated User list</div>
-            <div className='grid grid-cols-7 gap-4 space-y-1 border-b font-extrabold'>
-              <div className=''>Users</div>
-              <div className=''>Tier</div>
-              <div className=''>Streak Score</div>
-              <div className=''>Contribution Score</div>
-              <div className=''>Streak Tokens</div>
-              <div className=''>Contribution Tokens</div>
-              <div className=''>Total Tokens</div>
+            <div className='grid grid-cols-7 border-t border-b border-l py-2 text-sm font-extrabold'>
+              <div className='border-r px-2 text-center'>Users</div>
+              <div className='border-r px-2 text-center'>Tier</div>
+              <div className='border-r px-2 text-center'>Streak Score</div>
+              <div className='border-r px-2 text-center text-xs'>
+                Contribution Score
+              </div>
+              <div className='border-r px-2 text-center'>Streak Tokens</div>
+              <div className='border-r px-2 text-center text-xs'>
+                Contribution Tokens
+              </div>
+              <div className='border-r px-2 text-center'>Total Tokens</div>
             </div>
             <div className='max-height-box '>
               {randomData?.map((user, index) => {
                 return (
-                  <div
-                    key={index}
-                    className='grid grid-cols-6 gap-4 space-y-1 border-b'
-                  >
-                    <div className=''>#{index + 1}</div>
-                    <div className=''>{user.tier}</div>
-                    <div className=''>{user.streak}</div>
-                    <div className=''>{user.contribution}</div>
-                    <div className=''>{result?.streak[index] ?? '--'}</div>
-                    <div className=''>
+                  <div key={index} className='group grid grid-cols-7 border-b'>
+                    <div className=' mt-0 border-x px-2 text-center group-hover:bg-indigo-600 group-hover:text-white'>
+                      {index + 1}
+                    </div>
+                    <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
+                      {user.tier}
+                    </div>
+                    <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
+                      {user.streak}
+                    </div>
+                    <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
+                      {user.contribution}
+                    </div>
+                    <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
+                      {result?.streak[index] ?? '--'}
+                    </div>
+                    <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
                       {result?.contribution[index] ?? '--'}
                     </div>
-                    <div className=''>
+                    <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
                       {Number(
                         (result?.contribution[index] ?? 0) +
                           (result?.streak[index] ?? 0)
@@ -141,25 +181,102 @@ export default function HomePage() {
         </div>
 
         <div className=''>
-          <div>
-            <section className='flex'>
-              <div className='my-8'>
-                <div>Generate User List</div>
-                <div className='my-4 flex space-x-4'>
+          <div className='border-b'>
+            <section className='flex flex-col'>
+              <div className='my-4'>
+                <div className=' font-semibold underline'>
+                  Generate User List
+                </div>
+                <div className='my-2 flex space-x-4'>
                   <div className='mb-4 flex flex-col items-start justify-start'>
                     <label
-                      htmlFor='silver'
+                      htmlFor='Free_user'
+                      className='block text-sm font-medium text-gray-700'
+                    >
+                      Free %
+                    </label>
+                    <div className='mt-1'>
+                      <input
+                        value={userProportion[Tier.Free]}
+                        onChange={(e) =>
+                          handleUserProportionChange(Number(e.target.value))(
+                            Tier.Free
+                          )
+                        }
+                        type='number'
+                        name='free_user'
+                        id='free_user'
+                        className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                        placeholder='1'
+                      />
+                    </div>
+                  </div>
+                  <div className='mb-4 flex flex-col items-start justify-start'>
+                    <label
+                      htmlFor='Basic_user'
+                      className='block text-sm font-medium text-gray-700'
+                    >
+                      Basic %
+                    </label>
+                    <div className='mt-1'>
+                      <input
+                        value={userProportion[Tier.Basic]}
+                        onChange={(e) =>
+                          handleUserProportionChange(Number(e.target.value))(
+                            Tier.Basic
+                          )
+                        }
+                        type='number'
+                        name='Basic_user'
+                        id='Basic_user'
+                        className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                        placeholder='1'
+                      />
+                    </div>
+                  </div>
+                  <div className='mb-4 flex flex-col items-start justify-start'>
+                    <label
+                      htmlFor='Bronze_user'
+                      className='block text-sm font-medium text-gray-700'
+                    >
+                      Bronze %
+                    </label>
+                    <div className='mt-1'>
+                      <input
+                        value={userProportion[Tier.Bronze]}
+                        onChange={(e) =>
+                          handleUserProportionChange(Number(e.target.value))(
+                            Tier.Bronze
+                          )
+                        }
+                        type='number'
+                        name='Bronze_user'
+                        id='Bronze_user'
+                        className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                        placeholder='1'
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className='my-2 flex space-x-4'>
+                  <div className='mb-4 flex flex-col items-start justify-start'>
+                    <label
+                      htmlFor='Silver_user'
                       className='block text-sm font-medium text-gray-700'
                     >
                       Silver %
                     </label>
                     <div className='mt-1'>
                       <input
-                        value={silver}
-                        onChange={(e) => setSilver(Number(e.target.value))}
+                        value={userProportion[Tier.Silver]}
+                        onChange={(e) =>
+                          handleUserProportionChange(Number(e.target.value))(
+                            Tier.Silver
+                          )
+                        }
                         type='number'
-                        name='silver'
-                        id='silver'
+                        name='Silver_user'
+                        id='Silver_user'
                         className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         placeholder='1'
                       />
@@ -167,18 +284,22 @@ export default function HomePage() {
                   </div>
                   <div className='mb-4 flex flex-col items-start justify-start'>
                     <label
-                      htmlFor='gold'
+                      htmlFor='Gold_user'
                       className='block text-sm font-medium text-gray-700'
                     >
                       Gold %
                     </label>
                     <div className='mt-1'>
                       <input
-                        value={gold}
-                        onChange={(e) => setGold(Number(e.target.value))}
+                        value={userProportion[Tier.Gold]}
+                        onChange={(e) =>
+                          handleUserProportionChange(Number(e.target.value))(
+                            Tier.Gold
+                          )
+                        }
                         type='number'
-                        name='gold'
-                        id='gold'
+                        name='Gold_user'
+                        id='Gold_user'
                         className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         placeholder='1'
                       />
@@ -186,62 +307,137 @@ export default function HomePage() {
                   </div>
                   <div className='mb-4 flex flex-col items-start justify-start'>
                     <label
-                      htmlFor='platinum'
+                      htmlFor='Diamond_user'
                       className='block text-sm font-medium text-gray-700'
                     >
-                      Platinum %
+                      Diamond %
                     </label>
                     <div className='mt-1'>
                       <input
-                        value={platinum}
-                        onChange={(e) => setPlatinum(Number(e.target.value))}
+                        value={userProportion[Tier.Diamond]}
+                        onChange={(e) =>
+                          handleUserProportionChange(Number(e.target.value))(
+                            Tier.Diamond
+                          )
+                        }
                         type='number'
-                        name='platinum'
-                        id='platinum'
+                        name='Diamond_user'
+                        id='Diamond_user'
                         className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         placeholder='1'
                       />
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div className='mb-4 flex flex-col items-start justify-start'>
-                  <label
-                    htmlFor='percentage'
-                    className='block text-sm font-medium text-gray-700'
-                  >
-                    Number of users
-                  </label>
-                  <div className='mt-1'>
-                    <input
-                      value={users}
-                      onChange={(e) => setUsers(Number(e.target.value))}
-                      type='number'
-                      name='percentage'
-                      id='percentage'
-                      className='block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-                      placeholder='1'
-                    />
-                  </div>
+              <div className='mb-4 flex flex-col items-start justify-start'>
+                <label
+                  htmlFor='percentage'
+                  className='block text-sm font-medium text-gray-700'
+                >
+                  Number of users
+                </label>
+                <div className='mt-1'>
+                  <input
+                    value={users}
+                    onChange={(e) => setUsers(Number(e.target.value))}
+                    type='number'
+                    name='percentage'
+                    id='percentage'
+                    className='block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                    placeholder='1'
+                  />
                 </div>
+              </div>
 
-                <div className='m-4 ml-0 flex items-start'>
-                  <button
-                    type='button'
-                    className=' w-auto items-center rounded-md border border-transparent bg-indigo-600 px-8 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-                    onClick={generateData}
-                  >
-                    Generate user list
-                  </button>
-                </div>
+              <div className='m-4 ml-0 flex items-start'>
+                <button
+                  type='button'
+                  className=' w-auto items-center rounded-md border border-transparent bg-indigo-600 px-8 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                  onClick={generateData}
+                >
+                  Generate user list
+                </button>
               </div>
             </section>
           </div>
           <div>
-            <section className='flex'>
-              <div className='my-8'>
-                <div>Multipliers</div>
-                <div className='my-4 flex space-x-4'>
+            <section className='flex flex-col'>
+              <div className='my-4'>
+                <div className=' font-semibold underline'>Multipliers</div>
+                <div className='my-2 flex space-x-4'>
+                  <div className='mb-4 flex flex-col items-start justify-start'>
+                    <label
+                      htmlFor='free'
+                      className='block text-sm font-medium text-gray-700'
+                    >
+                      Free
+                    </label>
+                    <div className='mt-1'>
+                      <input
+                        value={multiplier[Tier.Free]}
+                        onChange={(e) =>
+                          handleMultiplierChange(Number(e.target.value))(
+                            Tier.Free
+                          )
+                        }
+                        type='number'
+                        name='free'
+                        id='free'
+                        className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                        placeholder='1'
+                      />
+                    </div>
+                  </div>
+                  <div className='mb-4 flex flex-col items-start justify-start'>
+                    <label
+                      htmlFor='Basic'
+                      className='block text-sm font-medium text-gray-700'
+                    >
+                      Basic
+                    </label>
+                    <div className='mt-1'>
+                      <input
+                        value={multiplier[Tier.Basic]}
+                        onChange={(e) =>
+                          handleMultiplierChange(Number(e.target.value))(
+                            Tier.Basic
+                          )
+                        }
+                        type='number'
+                        name='Basic'
+                        id='Basic'
+                        className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                        placeholder='1'
+                      />
+                    </div>
+                  </div>
+                  <div className='mb-4 flex flex-col items-start justify-start'>
+                    <label
+                      htmlFor='Bronze'
+                      className='block text-sm font-medium text-gray-700'
+                    >
+                      Bronze
+                    </label>
+                    <div className='mt-1'>
+                      <input
+                        value={multiplier[Tier.Bronze]}
+                        onChange={(e) =>
+                          handleMultiplierChange(Number(e.target.value))(
+                            Tier.Bronze
+                          )
+                        }
+                        type='number'
+                        name='Bronze'
+                        id='Bronze'
+                        className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                        placeholder='1'
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className='my-2 flex space-x-4'>
                   <div className='mb-4 flex flex-col items-start justify-start'>
                     <label
                       htmlFor='silver'
@@ -251,9 +447,11 @@ export default function HomePage() {
                     </label>
                     <div className='mt-1'>
                       <input
-                        value={silverMultiplier}
+                        value={multiplier[Tier.Silver]}
                         onChange={(e) =>
-                          setSilverMultiplier(Number(e.target.value))
+                          handleMultiplierChange(Number(e.target.value))(
+                            Tier.Silver
+                          )
                         }
                         type='number'
                         name='silver'
@@ -265,20 +463,22 @@ export default function HomePage() {
                   </div>
                   <div className='mb-4 flex flex-col items-start justify-start'>
                     <label
-                      htmlFor='gold'
+                      htmlFor='Gold'
                       className='block text-sm font-medium text-gray-700'
                     >
                       Gold
                     </label>
                     <div className='mt-1'>
                       <input
-                        value={goldMultiplier}
+                        value={multiplier[Tier.Gold]}
                         onChange={(e) =>
-                          setGoldMultiplier(Number(e.target.value))
+                          handleMultiplierChange(Number(e.target.value))(
+                            Tier.Gold
+                          )
                         }
                         type='number'
-                        name='gold'
-                        id='gold'
+                        name='Gold'
+                        id='Gold'
                         className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         placeholder='1'
                       />
@@ -286,58 +486,60 @@ export default function HomePage() {
                   </div>
                   <div className='mb-4 flex flex-col items-start justify-start'>
                     <label
-                      htmlFor='platinum'
+                      htmlFor='Diamond'
                       className='block text-sm font-medium text-gray-700'
                     >
-                      Platinum
+                      Diamond
                     </label>
                     <div className='mt-1'>
                       <input
-                        value={platinumMultiplier}
+                        value={multiplier[Tier.Diamond]}
                         onChange={(e) =>
-                          setPlatinumMultiplier(Number(e.target.value))
+                          handleMultiplierChange(Number(e.target.value))(
+                            Tier.Diamond
+                          )
                         }
                         type='number'
-                        name='platinum'
-                        id='platinum'
+                        name='Diamond'
+                        id='Diamond'
                         className='block w-24 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
                         placeholder='1'
                       />
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div className='mb-4 flex flex-col items-start justify-start'>
-                  <label
-                    htmlFor='percentage'
-                    className='block text-sm font-medium text-gray-700'
-                  >
-                    Percentage for streak bucket
-                  </label>
-                  <div className='mt-1'>
-                    <input
-                      value={percentageStreak}
-                      onChange={(e) =>
-                        setPercentageStreak(Number(e.target.value))
-                      }
-                      type='number'
-                      name='percentage'
-                      id='percentage'
-                      className='block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
-                      placeholder='1'
-                    />
-                  </div>
+              <div className='mb-4 flex flex-col items-start justify-start'>
+                <label
+                  htmlFor='percentage'
+                  className='block text-sm font-medium text-gray-700'
+                >
+                  Percentage for streak bucket
+                </label>
+                <div className='mt-1'>
+                  <input
+                    value={percentageStreak}
+                    onChange={(e) =>
+                      setPercentageStreak(Number(e.target.value))
+                    }
+                    type='number'
+                    name='percentage'
+                    id='percentage'
+                    className='block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+                    placeholder='1'
+                  />
                 </div>
+              </div>
 
-                <div className='mr-4 mb-4 flex items-start'>
-                  <button
-                    type='button'
-                    className=' w-auto items-center rounded-md border border-transparent bg-indigo-600 px-8 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
-                    onClick={getTokensAllocation}
-                  >
-                    Calculate
-                  </button>
-                </div>
+              <div className='mr-4 mb-4 flex items-start'>
+                <button
+                  type='button'
+                  className=' w-auto items-center rounded-md border border-transparent bg-indigo-600 px-8 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
+                  onClick={getTokensAllocation}
+                >
+                  Calculate
+                </button>
               </div>
             </section>
           </div>

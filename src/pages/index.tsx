@@ -1,4 +1,6 @@
+import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js';
 import * as React from 'react';
+import { Pie } from 'react-chartjs-2';
 import toast, { Toaster } from 'react-hot-toast';
 
 import { Tier, User } from '@/server';
@@ -34,6 +36,14 @@ export default function HomePage() {
     }
   };
   const [percentageStreak, setPercentageStreak] = React.useState(0);
+  const [totalTokens, setTotalTokens] = React.useState<Record<Tier, number>>({
+    free: 0,
+    basic: 0,
+    bronze: 0,
+    silver: 0,
+    gold: 0,
+    diamond: 0,
+  });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [result, setResult] = React.useState<Result | null>(null);
@@ -71,6 +81,7 @@ export default function HomePage() {
       });
 
       const data = await response.json();
+      setTotalTokens(data.totalTokens);
       // eslint-disable-next-line no-console
       if (!data.error) {
         setResult(data);
@@ -119,6 +130,41 @@ export default function HomePage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       toast.error((err as any).message ?? 'Something went wrong');
     }
+  };
+  ChartJS.register(ArcElement, Tooltip, Legend);
+
+  const data = {
+    labels: ['Free', 'Basic', 'Bronze', 'Silver', 'Gold', 'Diamond'],
+    datasets: [
+      {
+        label: 'Token Distribution',
+        data: [
+          totalTokens.free,
+          totalTokens.basic,
+          totalTokens.bronze,
+          totalTokens.silver,
+          totalTokens.gold,
+          totalTokens.diamond,
+        ],
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.2)',
+          'rgba(54, 162, 235, 0.2)',
+          'rgba(255, 206, 86, 0.2)',
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(153, 102, 255, 0.2)',
+          'rgba(255, 159, 64, 0.2)',
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)',
+        ],
+        borderWidth: 1,
+      },
+    ],
   };
 
   return (
@@ -542,6 +588,14 @@ export default function HomePage() {
                 </button>
               </div>
             </section>
+          </div>
+        </div>
+      </div>
+      <div className='my-8 block'>
+        <div className='flex flex-col items-center justify-center'>
+          <div className='font-semibold '>Token distribution</div>
+          <div className='h-96 w-96'>
+            <Pie data={data} />
           </div>
         </div>
       </div>

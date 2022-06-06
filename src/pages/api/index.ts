@@ -68,9 +68,31 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
       tierMultiplier,
     });
 
+    const { totalAllotableTokens: streakTokens } = streak;
+    const { totalAllotableTokens: contributionTokens } = contribution;
+
+    // sum of streakTokens and contributionTokens
+    const totalTokens = Object.entries(streakTokens).reduce<
+      Record<Tier, number>
+    >(
+      (acc, [tier, tokens]) => {
+        acc[tier as Tier] += tokens + contributionTokens[tier as Tier];
+        return acc;
+      },
+      {
+        [Tier.Free]: 0,
+        [Tier.Basic]: 0,
+        [Tier.Bronze]: 0,
+        [Tier.Silver]: 0,
+        [Tier.Gold]: 0,
+        [Tier.Diamond]: 0,
+      }
+    );
+
     res.status(200).json({
-      streak,
-      contribution,
+      streak: streak.tokensAllotedPerUser,
+      contribution: contribution.tokensAllotedPerUser,
+      totalTokens,
     });
   } catch (error) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

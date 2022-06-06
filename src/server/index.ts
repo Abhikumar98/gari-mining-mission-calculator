@@ -86,6 +86,15 @@ export const getTokensForUsers = ({
   const allotableBronzeTokens =
     (totalBronzeTokens / totalTokens) * allotableTokens;
 
+  const totalAllotableTokens: Record<Tier, number> = {
+    [Tier.Silver]: Number(allotableSilverTokens.toFixed(2)),
+    [Tier.Gold]: Number(allotableGoldTokens.toFixed(2)),
+    [Tier.Diamond]: Number(allotablePlatinumTokens.toFixed(2)),
+    [Tier.Basic]: Number(allotableBasicTokens.toFixed(2)),
+    [Tier.Free]: Number(allotableFreeTokens.toFixed(2)),
+    [Tier.Bronze]: Number(allotableBronzeTokens.toFixed(2)),
+  };
+
   const tokensAllotedPerUser = users.reduce((acc, curr) => {
     switch (curr.tier) {
       case Tier.Silver: {
@@ -139,5 +148,5 @@ export const getTokensForUsers = ({
     return acc;
   }, new Array<number>());
 
-  return tokensAllotedPerUser;
+  return { tokensAllotedPerUser, totalAllotableTokens };
 };

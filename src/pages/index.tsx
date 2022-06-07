@@ -37,14 +37,10 @@ export default function HomePage() {
     }
   };
   const [percentageStreak, setPercentageStreak] = React.useState(0);
-  const [totalTokens, setTotalTokens] = React.useState<Record<Tier, number>>({
-    free: 0,
-    basic: 0,
-    bronze: 0,
-    silver: 0,
-    gold: 0,
-    diamond: 0,
-  });
+  const [totalTokens, setTotalTokens] = React.useState<{
+    tokens: Record<Tier, number>;
+    alloted: Record<Tier, number>;
+  } | null>(null);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [result, setResult] = React.useState<Result | null>(null);
@@ -174,12 +170,45 @@ export default function HomePage() {
       {
         label: 'Token Distribution',
         data: [
-          totalTokens.free,
-          totalTokens.basic,
-          totalTokens.bronze,
-          totalTokens.silver,
-          totalTokens.gold,
-          totalTokens.diamond,
+          totalTokens?.tokens?.free ?? 0,
+          totalTokens?.tokens?.basic ?? 0,
+          totalTokens?.tokens?.bronze ?? 0,
+          totalTokens?.tokens?.silver ?? 0,
+          totalTokens?.tokens?.gold ?? 0,
+          totalTokens?.tokens?.diamond ?? 0,
+        ],
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.2)',
+          'rgba(54, 162, 235, 0.2)',
+          'rgba(255, 206, 86, 0.2)',
+          'rgba(75, 192, 192, 0.2)',
+          'rgba(153, 102, 255, 0.2)',
+          'rgba(255, 159, 64, 0.2)',
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)',
+          'rgba(255, 159, 64, 1)',
+        ],
+        borderWidth: 1,
+      },
+    ],
+  };
+  const userTokens = {
+    labels: ['Free', 'Basic', 'Bronze', 'Silver', 'Gold', 'Diamond'],
+    datasets: [
+      {
+        label: 'Token Distribution',
+        data: [
+          totalTokens?.alloted?.free ?? 0,
+          totalTokens?.alloted?.basic ?? 0,
+          totalTokens?.alloted?.bronze ?? 0,
+          totalTokens?.alloted?.silver ?? 0,
+          totalTokens?.alloted?.gold ?? 0,
+          totalTokens?.alloted?.diamond ?? 0,
         ],
         backgroundColor: [
           'rgba(255, 99, 132, 0.2)',
@@ -628,9 +657,19 @@ export default function HomePage() {
       </div>
       <div className='my-8 block'>
         <div className='flex flex-col items-center justify-center'>
-          <div className='font-semibold '>Token distribution</div>
-          <div className='h-96 w-96'>
-            <Pie data={data} />
+          <div className='flex justify-center space-x-8'>
+            <div className='flex flex-col items-center'>
+              <div className='font-semibold '>Token distribution</div>
+              <div className='h-96 w-96'>
+                <Pie data={data} />
+              </div>
+            </div>
+            <div className='flex flex-col items-center'>
+              <div className='font-semibold '>User Token distribution</div>
+              <div className='h-96 w-96'>
+                <Pie data={userTokens} />
+              </div>
+            </div>
           </div>
           <div className='m-4 flex items-start'>
             <button

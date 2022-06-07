@@ -68,8 +68,11 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
       tierMultiplier,
     });
 
-    const { totalAllotableTokens: streakTokens } = streak;
-    const { totalAllotableTokens: contributionTokens } = contribution;
+    const { totalAllotableTokens: streakTokens, totalAlloted } = streak;
+    const {
+      totalAllotableTokens: contributionTokens,
+      totalAlloted: contributionAlloted,
+    } = contribution;
 
     // sum of streakTokens and contributionTokens
     const totalTokens = Object.entries(streakTokens).reduce<
@@ -88,11 +91,28 @@ const index = async (req: NextApiRequest, res: NextApiResponse) => {
         [Tier.Diamond]: 0,
       }
     );
+    const alloted = Object.entries(totalAlloted).reduce<Record<Tier, number>>(
+      (acc, [tier, tokens]) => {
+        acc[tier as Tier] += tokens + contributionAlloted[tier as Tier];
+        return acc;
+      },
+      {
+        [Tier.Free]: 0,
+        [Tier.Basic]: 0,
+        [Tier.Bronze]: 0,
+        [Tier.Silver]: 0,
+        [Tier.Gold]: 0,
+        [Tier.Diamond]: 0,
+      }
+    );
 
     res.status(200).json({
       streak: streak.tokensAllotedPerUser,
       contribution: contribution.tokensAllotedPerUser,
-      totalTokens,
+      totalTokens: {
+        tokens: totalTokens,
+        alloted,
+      },
     });
   } catch (error) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

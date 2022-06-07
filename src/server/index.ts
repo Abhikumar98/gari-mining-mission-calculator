@@ -94,6 +94,14 @@ export const getTokensForUsers = ({
     [Tier.Free]: Number(allotableFreeTokens.toFixed(2)),
     [Tier.Bronze]: Number(allotableBronzeTokens.toFixed(2)),
   };
+  const totalAlloted: Record<Tier, number> = {
+    [Tier.Silver]: 0,
+    [Tier.Gold]: 0,
+    [Tier.Diamond]: 0,
+    [Tier.Basic]: 0,
+    [Tier.Free]: 0,
+    [Tier.Bronze]: 0,
+  };
 
   const tokensAllotedPerUser = users.reduce((acc, curr) => {
     switch (curr.tier) {
@@ -102,6 +110,7 @@ export const getTokensForUsers = ({
           (curr.score / totalSilverTokens) * allotableSilverTokens;
 
         acc.push(Number(tokensForUser.toFixed(2)));
+        totalAlloted[Tier.Silver] += Number(tokensForUser.toFixed(2));
         break;
       }
       case Tier.Gold: {
@@ -109,6 +118,7 @@ export const getTokensForUsers = ({
           (curr.score / totalGoldTokens) * allotableGoldTokens;
 
         acc.push(Number(tokensForUser.toFixed(2)));
+        totalAlloted[Tier.Gold] += Number(tokensForUser.toFixed(2));
         break;
       }
       case Tier.Diamond: {
@@ -116,6 +126,7 @@ export const getTokensForUsers = ({
           (curr.score / totalPlatinumTokens) * allotablePlatinumTokens;
 
         acc.push(Number(tokensForUser.toFixed(2)));
+        totalAlloted[Tier.Diamond] += Number(tokensForUser.toFixed(2));
         break;
       }
       case Tier.Basic: {
@@ -123,6 +134,7 @@ export const getTokensForUsers = ({
           (curr.score / totalBasicTokens) * allotableBasicTokens;
 
         acc.push(Number(tokensForUser.toFixed(2)));
+        totalAlloted[Tier.Basic] += Number(tokensForUser.toFixed(2));
         break;
       }
       case Tier.Free: {
@@ -130,6 +142,7 @@ export const getTokensForUsers = ({
           (curr.score / totalFreeTokens) * allotableFreeTokens;
 
         acc.push(Number(tokensForUser.toFixed(2)));
+        totalAlloted[Tier.Free] += Number(tokensForUser.toFixed(2));
         break;
       }
 
@@ -138,6 +151,7 @@ export const getTokensForUsers = ({
           (curr.score / totalBronzeTokens) * allotableBronzeTokens;
 
         acc.push(Number(tokensForUser.toFixed(2)));
+        totalAlloted[Tier.Bronze] += Number(tokensForUser.toFixed(2));
         break;
       }
 
@@ -148,5 +162,5 @@ export const getTokensForUsers = ({
     return acc;
   }, new Array<number>());
 
-  return { tokensAllotedPerUser, totalAllotableTokens };
+  return { tokensAllotedPerUser, totalAllotableTokens, totalAlloted };
 };

@@ -3,25 +3,45 @@ import { creatCsvFile, downloadFile } from 'download-csv';
 import * as React from 'react';
 import { Pie } from 'react-chartjs-2';
 import toast, { Toaster } from 'react-hot-toast';
+import { List } from 'react-virtualized';
 
 import { Tier, User } from '@/server';
+import { generateUsers, getUserTokens } from '@/utils';
 
-/**
- * SVGR Support
- * Caveat: No React Props Type.
- *
- * You can override the next-env if the type is important to you
- * @see https://stackoverflow.com/questions/68103844/how-to-override-next-js-svg-module-declaration
- */
-
-// !STARTERCONF -> Select !STARTERCONF and CMD + SHIFT + F
-// Before you begin editing, follow all comments with `STARTERCONF`,
-// to customize the default configuration.
 interface Result {
   streak: number[];
   contribution: number[];
 }
 export default function HomePage() {
+  const [maxDimensions, setMaxDimensions] = React.useState<{
+    height: number;
+    width: number;
+  }>({
+    height: 0,
+    width: 0,
+  });
+
+  const updateValue = () => {
+    const div = document.createElement('div');
+    div.className = 'max-height-box';
+    const target = document.querySelector('#target-width');
+    document.body.appendChild(div);
+
+    setMaxDimensions({
+      height: div.clientHeight,
+      width: target?.getBoundingClientRect().width ?? 0,
+    });
+    document.body.removeChild(div);
+  };
+
+  React.useEffect(() => {
+    updateValue();
+    document.addEventListener('resize', () => updateValue());
+    return () => {
+      document.removeEventListener('resize', () => updateValue());
+    };
+  }, []);
+
   const [multiplier, setMultiplier] = React.useState<Record<Tier, number>>({
     free: 1,
     basic: 2,
@@ -61,7 +81,7 @@ export default function HomePage() {
 
   const getTokensAllocation = async () => {
     try {
-      const body = {
+      const data = getUserTokens({
         freeMultiplier: multiplier.free,
         basicMultiplier: multiplier.basic,
         bronzeMultiplier: multiplier.bronze,
@@ -70,19 +90,10 @@ export default function HomePage() {
         diamondMultiplier: multiplier.diamond,
         percentageStreak,
         users: randomData,
-      };
-
-      const response = await fetch('/api', {
-        method: 'POST',
-        body: JSON.stringify(body),
       });
-
-      const data = await response.json();
       setTotalTokens(data.totalTokens);
+      setResult(data);
       // eslint-disable-next-line no-console
-      if (!data.error) {
-        setResult(data);
-      }
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error({ err });
@@ -103,24 +114,20 @@ export default function HomePage() {
       }
 
       if (users < 1) {
-        toast.error('Invalid users');
+        toast.error('You must have at least 1 user');
         return;
       }
 
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        body: JSON.stringify({
-          goldTier: userProportion.gold,
-          silverTier: userProportion.silver,
-          bronzeTier: userProportion.bronze,
-          freeTier: userProportion.free,
-          diamondTier: userProportion.diamond,
-          basicTier: userProportion.basic,
-          numberOfUsers: users,
-        }),
+      const generatedUsers = generateUsers({
+        goldTier: userProportion.gold,
+        silverTier: userProportion.silver,
+        bronzeTier: userProportion.bronze,
+        freeTier: userProportion.free,
+        diamondTier: userProportion.diamond,
+        basicTier: userProportion.basic,
+        numberOfUsers: users,
       });
-      const data = await response.json();
-      setRandomData(data);
+      setRandomData(generatedUsers);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error({ err });
@@ -237,7 +244,10 @@ export default function HomePage() {
         <div className='flex h-auto max-w-6xl space-x-4'>
           <div className='h-auto rounded-md border p-4'>
             <div className='mb-8'>Generated User list</div>
-            <div className='grid grid-cols-7 border-t border-b border-l py-2 text-sm font-extrabold'>
+            <div
+              className='grid grid-cols-7 border-t border-b border-l py-2 text-sm font-extrabold'
+              id='target-width'
+            >
               <div className='border-r px-2 text-center'>Users</div>
               <div className='border-r px-2 text-center'>Tier</div>
               <div className='border-r px-2 text-center'>Streak Score</div>
@@ -251,7 +261,49 @@ export default function HomePage() {
               <div className='border-r px-2 text-center'>Total Tokens</div>
             </div>
             <div className='max-height-box '>
-              {randomData?.map((user, index) => {
+              <List
+                width={maxDimensions.width}
+                height={maxDimensions.height}
+                rowHeight={40}
+                rowCount={randomData.length}
+                rowRenderer={({ index, style }) => {
+                  const user = randomData[index];
+                  return (
+                    <div
+                      key={index}
+                      style={style}
+                      className='group grid grid-cols-7 border-b'
+                    >
+                      <div className=' mt-0 border-x px-2 text-center group-hover:bg-indigo-600 group-hover:text-white'>
+                        {index + 1}
+                      </div>
+                      <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
+                        {user.tier}
+                      </div>
+                      <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
+                        {user.streak}
+                      </div>
+                      <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
+                        {user.contribution}
+                      </div>
+                      <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
+                        {result?.streak[index] ?? '--'}
+                      </div>
+                      <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
+                        {result?.contribution[index] ?? '--'}
+                      </div>
+                      <div className=' mt-0 border-r px-2 group-hover:bg-indigo-600 group-hover:text-white'>
+                        {Number(
+                          (result?.contribution[index] ?? 0) +
+                            (result?.streak[index] ?? 0)
+                        ).toFixed(2) ?? '--'}
+                      </div>
+                    </div>
+                  );
+                }}
+              />
+
+              {/* {randomData?.map((user, index) => {
                 return (
                   <div key={index} className='group grid grid-cols-7 border-b'>
                     <div className=' mt-0 border-x px-2 text-center group-hover:bg-indigo-600 group-hover:text-white'>
@@ -280,7 +332,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 );
-              })}
+              })} */}
               {!randomData && (
                 <div className='mt-12 flex items-center justify-center'>
                   No users generated

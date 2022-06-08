@@ -20,6 +20,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@types/react-virtualized": "^9.21.21",
     "chart.js": "^3.8.0",
     "clsx": "^1.1.1",
     "download-csv": "^1.1.1",
@@ -29,6 +30,7 @@
     "react-dom": "^18.1.0",
     "react-hot-toast": "^2.2.0",
     "react-icons": "^4.3.1",
+    "react-virtualized": "^9.22.3",
     "tailwind-merge": "^1.2.1"
   },
   "devDependencies": {
@@ -38,7 +40,8 @@
     "@tailwindcss/forms": "^0.5.2",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^13.2.0",
-    "@types/react": "^18.0.9",
+    "@types/react": "18.0.0",
+    "@types/react-dom": "18.0.0",
     "@types/tailwindcss": "^3.0.10",
     "@typescript-eslint/eslint-plugin": "^5.25.0",
     "@typescript-eslint/parser": "^5.25.0",
@@ -67,5 +70,9 @@
     "src/**/*.{json,css,scss,md}": [
       "prettier -w"
     ]
+  },
+  "resolutions": {
+    "@types/react": "18.0.0",
+    "@types/react-dom": "18.0.0"
   }
 }
